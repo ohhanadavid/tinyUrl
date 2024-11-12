@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-TinyurlApplication<tinyurl>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.handson.tinyurl.TinyurlApplication",
+            "projectName": "tinyurl",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
