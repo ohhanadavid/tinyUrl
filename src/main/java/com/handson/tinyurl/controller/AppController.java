@@ -1,6 +1,10 @@
 package com.handson.tinyurl.controller;
 
+
+import java.util.Date;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +12,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import static org.springframework.data.util.StreamUtils.createStreamFromIterator;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +26,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handson.tinyurl.model.NewTinyRequest;
 import com.handson.tinyurl.model.User;
 import static com.handson.tinyurl.model.User.UserBuilder.anUser;
-import static com.handson.tinyurl.util.Dates.getCurMonth;
+import static com.handson.tinyurl.model.UserClick.UserClickBuilder.anUserClick;
+import static com.handson.tinyurl.model.UserClickKey.UserClickKeyBuilder.anUserClickKey;
+import com.handson.tinyurl.model.UserClickOut;
+import com.handson.tinyurl.repository.UserClickRepository;
 import com.handson.tinyurl.repository.UserRepository;
 import com.handson.tinyurl.service.Redis;
+import static com.handson.tinyurl.util.Dates.getCurMonth;
 
 @RestController
 public class AppController {
@@ -98,11 +107,27 @@ public class AppController {
                 incrementMongoField(userName, "allUrlClicks");
                 incrementMongoField(userName,
                         "shorts."  + tiny + ".clicks." + getCurMonth());
+                userClickRepository.save(anUserClick().userClickKey(anUserClickKey().withUserName(userName).withClickTime(new Date()).build())
+                .tiny(tiny).longUrl(tinyRequest.getLongUrl()).build());
             }
             return new ModelAndView("redirect:" + tinyRequest.getLongUrl());
         } else {
             throw new RuntimeException(tiny + " not found");
         }
     }
+
+        @Autowired
+    private UserClickRepository userClickRepository;
+
+    @RequestMapping(value = "/user/{name}/clicks", method = RequestMethod.GET)
+    public List<UserClickOut> getUserClicks(@RequestParam String name) {
+        var userClicks = createStreamFromIterator( userClickRepository.findByUserName(name).iterator())
+                .map(userClick -> UserClickOut.of(userClick))
+                .collect(Collectors.toList());
+        return userClicks;
+    }
+
+        
+
 
 }
