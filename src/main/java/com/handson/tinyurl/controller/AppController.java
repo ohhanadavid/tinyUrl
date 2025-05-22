@@ -71,7 +71,7 @@ public class AppController {
         return user;
     }
 
-    @RequestMapping(value = "/user/{name}", method = RequestMethod.GET)
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
     public User getUser(@RequestParam String name) {
         User user = userRepository.findFirstByName(name);
         return user;
